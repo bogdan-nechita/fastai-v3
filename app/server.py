@@ -9,10 +9,10 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-export_file_url = 'https://www.dropbox.com/s/6bgq8t6yextloqp/export.pkl?raw=1'
-export_file_name = 'export.pkl'
+export_file_url = 'https://drive.google.com/uc?export=download&id=1KpYllvvVCLiXRsCck14aXn-O808ZKA8r'
+export_file_name = 'resnet50_81_acc_29_may_2019.pkl'
 
-classes = ['black', 'grizzly', 'teddys']
+classes = ['depleted', 'low', 'threshold', 'target', 'high', 'two_pad_high_high', 'two_pad_high_low', 'two_pad_low_low']
 path = Path(__file__).parent
 
 app = Starlette()
@@ -21,7 +21,8 @@ app.mount('/static', StaticFiles(directory='app/static'))
 
 
 async def download_file(url, dest):
-    if dest.exists(): return
+    if dest.exists():
+        return
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             data = await response.read()
@@ -58,7 +59,7 @@ async def homepage(request):
 @app.route('/analyze', methods=['POST'])
 async def analyze(request):
     img_data = await request.form()
-    img_bytes = await (img_data['file'].read())
+    img_bytes = await(img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
     prediction = learn.predict(img)[0]
     return JSONResponse({'result': str(prediction)})
