@@ -31,6 +31,12 @@ app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_headers=['X-Reques
 app.mount('/static', StaticFiles(directory='app/static'))
 
 
+# Ensure the dir exists at the current path.
+def ensure_dir(dir_name):
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name, mode=0o777)
+        print('Created %s directory' % dir_name)
+
 async def download_file(url, dest):
     if dest.exists():
         print("File already exists.")
@@ -71,6 +77,8 @@ async def setup_two_pad_learner():
         else:
             raise
 
+ensure_dir(one_pad_model_path)
+ensure_dir(two_pads_model_path)
 
 loop = asyncio.get_event_loop()
 
