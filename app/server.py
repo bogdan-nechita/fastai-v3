@@ -10,8 +10,8 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
 
-export_one_pad_file_url = 'https://drive.google.com/uc?export=download&id=1KpYllvvVCLiXRsCck14aXn-O808ZKA8r'
-export_one_pad_file_name = 'resnet50_81_acc_29_may_2019.pkl'
+export_one_pad_file_url = 'https://drive.google.com/uc?export=download&id=16QyNnQEDZl6y3uDVxCSQ_AwrF67_Jahs'
+export_one_pad_file_name = 'resnet50_one_pad_87_acc_6_june.pkl'
 
 export_two_pads_file_url = 'https://drive.google.com/uc?export=download&id=1KpYllvvVCLiXRsCck14aXn-O808ZKA8r'
 export_two_pads_file_name = 'resnet50_81_acc_29_may_2019.pkl'
