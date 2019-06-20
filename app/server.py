@@ -16,15 +16,16 @@ export_one_pad_file_name = 'resnet50_one_pad_87_acc_6_june.pkl'
 export_two_pads_file_url = 'https://drive.google.com/uc?export=download&id=1KpYllvvVCLiXRsCck14aXn-O808ZKA8r'
 export_two_pads_file_name = 'resnet50_81_acc_29_may_2019.pkl'
 
+export_uric_acid_file_url = 'https://drive.google.com/uc?export=download&id=1pDknKzHPeS93CCtZnwZEorzcodmFXclP'
+export_uric_acid_file_name = 'resnet50_UA_89_acc_20_june_2019.pkl'
 
-# classes = ['depleted', 'low', 'threshold', 'target', 'high', 'two_pad_high_high', 'two_pad_high_low', 'two_pad_low_low']
-# one_pad_classes = ['depleted', 'low', 'threshold', 'target', 'high']
 path = Path(__file__).parent
 
 models_path = path / "models"
 
 one_pad_model_path = models_path / "one_pad_model"
 two_pads_model_path = models_path / "two_pads_model"
+uric_acid_model_path = models_path / "uric_acid_model"
 
 app = Starlette()
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_headers=['X-Requested-With', 'Content-Type'])
@@ -77,8 +78,23 @@ async def setup_two_pad_learner():
         else:
             raise
 
+async def setup_uric_acid_learner():
+    print('Start downloading uric acid model.')
+    await download_file(export_uric_acid_file_url, uric_acid_model_path / export_uric_acid_file_name)
+    try:
+        learn = load_learner(uric_acid_model_path, export_uric_acid_file_name)
+        return learn
+    except RuntimeError as e:
+        if len(e.args) > 0 and 'CPU-only machine' in e.args[0]:
+            print(e)
+            message = "\n\nThis model was trained with an old version of fastai and will not work in a CPU environment.\n\nPlease update the fastai library in your training environment and export your model again.\n\nSee instructions for 'Returning to work' at https://course.fast.ai."
+            raise RuntimeError(message)
+        else:
+            raise
+
 ensure_dir(one_pad_model_path)
 ensure_dir(two_pads_model_path)
+ensure_dir(uric_acid_model_path)
 
 loop = asyncio.get_event_loop()
 
@@ -89,6 +105,10 @@ one_pad_model = loop.run_until_complete(asyncio.gather(*tasks))[0]
 tasks = [asyncio.ensure_future(setup_two_pad_learner())]
 
 two_pad_model = loop.run_until_complete(asyncio.gather(*tasks))[0]
+
+tasks = [asyncio.ensure_future(setup_uric_acid_learner())]
+
+uric_acid_model = loop.run_until_complete(asyncio.gather(*tasks))[0]
 
 loop.close()
 
@@ -116,6 +136,16 @@ async def analyze_one_pad(request):
     img_bytes = await(img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
     prediction = one_pad_model.predict(img)[0]
+    return JSONResponse({'result': str(prediction)})
+
+
+@app.route('/analyze_uric_acid_strip', methods=['POST'])
+async def analyze_uric_acid_strip(request):
+    print('analyze_uric_acid_strip call')
+    img_data = await request.form()
+    img_bytes = await(img_data['file'].read())
+    img = open_image(BytesIO(img_bytes))
+    prediction = uric_acid_model.predict(img)[0]
     return JSONResponse({'result': str(prediction)})
 
 
